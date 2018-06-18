@@ -25,11 +25,6 @@ let init = (dbConfig) => {
             } else {
                 client.release();
                 resolve(true);
-
-                client.on('error', function (err) {
-                    console.error('libMysql.init, error connecting mysql:', err.message);
-                    libMysql.conn = null;
-                });
             }
         });
     });
@@ -96,10 +91,44 @@ let close = async () => {
     }
 }
 
+let getPoolConnection = () => {
+    return new Promise((resolve, reject) => {
+        if (libMysql.conn) {
+            libMysql.conn.getConnection((err, client) => {
+                if(err) {
+                    console.error('libMysql.getPoolConnection, failed', err.message);
+                    reject(err);
+                } else {
+                    resolve(client);
+                }
+            });
+        } else {
+            console.error('libMysql.getPoolConnection, error connecting mysql');
+            reject(new Error('Mysql is not connected, please try again later'));
+        }
+    });
+}
+
+let poolQuery = (pool, query, queryParams = []) => {
+    return new Promise((resolve, reject) => {
+        pool.query(query, queryParams, (err, result) => {
+            if(err) {
+                pool.release();
+                reject(err);
+            } else {
+                pool.release();
+                resolve(result);
+            }
+        });
+    });
+}
+
 module.exports = {
     __init: init,
     __select: select,
     __insert: insert,
     __update: update,
+    __getPoolConnection: getPoolConnection,
+    __poolQuery: poolQuery,
     __close: close
 }
