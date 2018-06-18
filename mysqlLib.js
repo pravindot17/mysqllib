@@ -17,12 +17,13 @@ let init = (dbConfig) => {
 
         let pool =  mysql.createPool(libMysql.dbConfig.options);
 
+        libMysql.conn = pool;
         pool.getConnection((err, client) => {
             if (err) {
                 console.error('connection failed with mysql', err.message);
                 reject(err);
             } else {
-                libMysql.conn = client;
+                client.release();
                 resolve(true);
 
                 client.on('error', function (err) {
@@ -91,7 +92,7 @@ let update = (query, queryParams = []) => {
 
 let close = async () => {
     if (libMysql.dbConfig.init) {
-        await libMysql.conn.release();
+        await libMysql.conn.end();
     }
 }
 
