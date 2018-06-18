@@ -113,10 +113,8 @@ let poolQuery = (pool, query, queryParams = []) => {
     return new Promise((resolve, reject) => {
         pool.query(query, queryParams, (err, result) => {
             if(err) {
-                pool.release();
                 reject(err);
             } else {
-                pool.release();
                 resolve(result);
             }
         });
