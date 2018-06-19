@@ -15,7 +15,7 @@ let init = (dbConfig) => {
             return resolve(false);
         }
 
-        let pool =  mysql.createPool(libMysql.dbConfig.options);
+        let pool =  mysql.createPool(libMysql.dbConfig);
 
         libMysql.conn = pool;
         pool.getConnection((err, client) => {
