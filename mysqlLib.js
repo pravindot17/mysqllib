@@ -4,17 +4,21 @@
 let mysql = require('mysql');
 let libMysql = {};
 
-let init = (dbConfig) => {
+module.exports = {
+    __init: init,
+    __select: select,
+    __insert: insert,
+    __update: update,
+    __getPoolConnection: getPoolConnection,
+    __poolQuery: poolQuery,
+    __close: close
+}
+
+function init(dbConfig) {
     return new Promise((resolve, reject) => {
 
         // set config here for later use
         libMysql.dbConfig = dbConfig;
-
-        if (!libMysql.dbConfig.init) {
-            libMysql.conn = null;
-            return resolve(false);
-        }
-
         let pool =  mysql.createPool(libMysql.dbConfig);
 
         libMysql.conn = pool;
@@ -30,7 +34,7 @@ let init = (dbConfig) => {
     });
 }
 
-let select = (query, queryParams = []) => {
+function select(query, queryParams = []) {
     return new Promise((resolve, reject) => {
         if (libMysql.conn) {
             libMysql.conn.query(query, queryParams, (err, results, fields) => {
@@ -48,7 +52,7 @@ let select = (query, queryParams = []) => {
     });
 }
 
-let insert = (query, queryParams = []) => {
+function insert(query, queryParams = []) {
     return new Promise((resolve, reject) => {
         if (libMysql.conn) {
             libMysql.conn.query(query, queryParams, (err, results, fields) => {
@@ -67,7 +71,7 @@ let insert = (query, queryParams = []) => {
 }
 
 
-let update = (query, queryParams = []) => {
+function update(query, queryParams = []) {
     return new Promise((resolve, reject) => {
         if (libMysql.conn) {
             libMysql.conn.query(query, queryParams, (err, results, fields) => {
@@ -85,13 +89,13 @@ let update = (query, queryParams = []) => {
     });
 }
 
-let close = async () => {
+async function close() {
     if (libMysql.dbConfig.init) {
         await libMysql.conn.end();
     }
 }
 
-let getPoolConnection = () => {
+function getPoolConnection() {
     return new Promise((resolve, reject) => {
         if (libMysql.conn) {
             libMysql.conn.getConnection((err, client) => {
@@ -109,7 +113,7 @@ let getPoolConnection = () => {
     });
 }
 
-let poolQuery = (pool, query, queryParams = []) => {
+function poolQuery(pool, query, queryParams = []) {
     return new Promise((resolve, reject) => {
         pool.query(query, queryParams, (err, result) => {
             if(err) {
@@ -119,14 +123,4 @@ let poolQuery = (pool, query, queryParams = []) => {
             }
         });
     });
-}
-
-module.exports = {
-    __init: init,
-    __select: select,
-    __insert: insert,
-    __update: update,
-    __getPoolConnection: getPoolConnection,
-    __poolQuery: poolQuery,
-    __close: close
 }
