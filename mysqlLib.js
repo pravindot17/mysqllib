@@ -19,18 +19,22 @@ function init(dbConfig) {
 
         // set config here for later use
         libMysql.dbConfig = dbConfig;
-        let pool =  mysql.createPool(libMysql.dbConfig);
 
-        libMysql.conn = pool;
-        pool.getConnection((err, client) => {
-            if (err) {
-                console.error('connection failed with mysql', err.message);
-                reject(err);
-            } else {
-                client.release();
-                resolve(true);
-            }
-        });
+        if(!libMysql.conn) {
+            let pool =  mysql.createPool(libMysql.dbConfig);
+            libMysql.conn = pool;
+            pool.getConnection((err, client) => {
+                if (err) {
+                    console.error('connection failed with mysql', err.message);
+                    reject(err);
+                } else {
+                    client.release();
+                    resolve(true);
+                }
+            });
+        } else {
+            resolve(null);
+        }
     });
 }
 
