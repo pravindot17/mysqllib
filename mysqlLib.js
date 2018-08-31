@@ -3,6 +3,7 @@
 */
 let mysql = require('mysql');
 let libMysql = {};
+libMysql.conn = {};
 
 module.exports = {
     __init: init,
@@ -20,9 +21,9 @@ function init(dbConfig) {
         // set config here for later use
         libMysql.dbConfig = dbConfig;
 
-        if(!libMysql.conn) {
+        if(!libMysql.conn[libMysql.dbConfig['database']]) {
             let pool =  mysql.createPool(libMysql.dbConfig);
-            libMysql.conn = pool;
+            libMysql.conn[libMysql.dbConfig['database']] = pool;
             pool.getConnection((err, client) => {
                 if (err) {
                     console.error('connection failed with mysql', err.message);
@@ -40,8 +41,8 @@ function init(dbConfig) {
 
 function select(query, queryParams = []) {
     return new Promise((resolve, reject) => {
-        if (libMysql.conn) {
-            libMysql.conn.query(query, queryParams, (err, results, fields) => {
+        if (libMysql.conn[libMysql.dbConfig['database']]) {
+            libMysql.conn[libMysql.dbConfig['database']].query(query, queryParams, (err, results, fields) => {
                 if(err) {
                     console.error('libMysql.select, failed', err.message);
                     reject(err);
@@ -58,8 +59,8 @@ function select(query, queryParams = []) {
 
 function insert(query, queryParams = []) {
     return new Promise((resolve, reject) => {
-        if (libMysql.conn) {
-            libMysql.conn.query(query, queryParams, (err, results, fields) => {
+        if (libMysql.conn[libMysql.dbConfig['database']]) {
+            libMysql.conn[libMysql.dbConfig['database']].query(query, queryParams, (err, results, fields) => {
                 if(err) {
                     console.error('libMysql.insert, failed', err.message);
                     reject(err);
@@ -77,8 +78,8 @@ function insert(query, queryParams = []) {
 
 function update(query, queryParams = []) {
     return new Promise((resolve, reject) => {
-        if (libMysql.conn) {
-            libMysql.conn.query(query, queryParams, (err, results, fields) => {
+        if (libMysql.conn[libMysql.dbConfig['database']]) {
+            libMysql.conn[libMysql.dbConfig['database']].query(query, queryParams, (err, results, fields) => {
                 if(err) {
                     console.error('libMysql.update, failed', err.message);
                     reject(err);
@@ -94,15 +95,13 @@ function update(query, queryParams = []) {
 }
 
 async function close() {
-    if (libMysql.dbConfig.init) {
-        await libMysql.conn.end();
-    }
+    await libMysql.conn[libMysql.dbConfig['database']].end();
 }
 
 function getPoolConnection() {
     return new Promise((resolve, reject) => {
-        if (libMysql.conn) {
-            libMysql.conn.getConnection((err, client) => {
+        if (libMysql.conn[libMysql.dbConfig['database']]) {
+            libMysql.conn[libMysql.dbConfig['database']].getConnection((err, client) => {
                 if(err) {
                     console.error('libMysql.getPoolConnection, failed', err.message);
                     reject(err);
